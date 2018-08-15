@@ -179,10 +179,10 @@ void loop() {
   else if (IBus.readChannel(0) < 1470) {
     nose_ccw();
   }
-  else if (IBus.readChannel(1) < 1470) {
+  else if (IBus.readChannel(1) >1530) {
     //////////////
     Serial.println("fwddd");
-    pwm = abs(1500-IBus.readChannel(1) );
+    pwm = abs(IBus.readChannel(1) -1500);
     pwm = pwm / 3;
     if (getHeading > desired_angle) {
       speedo = (getHeading - desired_angle) * Kp + constant;
@@ -190,8 +190,8 @@ void loop() {
         speedo = threshold;
       }
       corr = speedo;
-      analogWrite(3, corr);
-      analogWrite(5, 0);
+      analogWrite(5, corr);
+      analogWrite(3, 0);
       //        Serial.print("+")  ;
       //    Serial.println(corr);
 
@@ -203,8 +203,8 @@ void loop() {
       }
       corr = speedo ;
 
-      analogWrite(5, corr);
-      analogWrite(3, 0);
+      analogWrite(3, corr);
+      analogWrite(5, 0);
       //    Serial.print("-")  ;
       //    Serial.println(corr);
 
@@ -216,10 +216,10 @@ void loop() {
 
 
   }
-  else if (IBus.readChannel(1) >  1530) {
+  else if (IBus.readChannel(1) < 1470) {
     //////////
     Serial.println("revvvvvvvvvvvddd");
-    pwm = abs( IBus.readChannel(1) - 1500);
+    pwm = abs(1500 -IBus.readChannel(1) );
     pwm = pwm / 3;
     if (getHeading > desired_angle) {
       speedo = (getHeading - desired_angle) * Kp + constant;
@@ -227,8 +227,8 @@ void loop() {
         speedo = threshold;
       }
       corr = speedo;
-      analogWrite(3, corr);
-      analogWrite(5, 0);
+      analogWrite(5, corr);
+      analogWrite(3, 0);
       //        Serial.print("+")  ;
       //    Serial.println(corr);
 
@@ -240,8 +240,8 @@ void loop() {
       }
       corr = speedo ;
 
-      analogWrite(5, corr);
-      analogWrite(3, 0);
+      analogWrite(3, corr);
+      analogWrite(5, 0);
       //    Serial.print("-")  ;
       //    Serial.println(corr);
 
