@@ -68,7 +68,7 @@ float vv;
 void setup() {
   Serial.begin(115200);
   pinMode(LED_BUILTIN,OUTPUT);
-IBus.begin(Serial);
+IBus.begin(Serial1);
 Wire.beginTransmission(8);
 
   initg();
@@ -139,7 +139,10 @@ void loop() {
   
   Wire.requestFrom(8,4);              // request 4 bytes from slave device #8
   if (Wire.requestFrom(8, 4) == 4)
-  I2C_readAnything (getHeading);   
+  I2C_readAnything (getHeading);
+  Serial.println(getHeading);
+  if(getHeading==500.00)
+  Serial.println("Connection Terminated");   
   IBus.loop();
   //       Serial.print(receiver_input[1]);
   //        Serial.print("--");
