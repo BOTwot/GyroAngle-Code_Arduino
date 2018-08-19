@@ -234,8 +234,12 @@ void loop() {
         speedo = threshold;
       }
       corr = speedo;
+     analogWrite(3, pwm);
+      analogWrite(5, 0);
+      analogWrite(9, 0.7 * pwm);
+      analogWrite(6, 0);
       analogWrite(11, 0);
-      analogWrite(10,corr);
+      analogWrite(10, 0.7 * pwm+corr);
     }
     else if (getHeading < desired_angle) {
       speedo = (desired_angle - getHeading) * Kp + constant;
@@ -243,15 +247,14 @@ void loop() {
         speedo = threshold;
       }
       corr = speedo ;
-      analogWrite(9, corr);
-      analogWrite(6, 0);
-    }
      analogWrite(3, pwm);
       analogWrite(5, 0);
-      analogWrite(9, 0.7 * pwm);
+      analogWrite(9, 0.7 * pwm+corr);
       analogWrite(6, 0);
       analogWrite(11, 0);
       analogWrite(10, 0.7 * pwm);
+    }
+
   }
   flagg = 0;
   //left
@@ -272,8 +275,12 @@ void loop() {
         speedo = threshold;
       }
       corr = speedo;
-      analogWrite(10, 0);
-      analogWrite(11,corr);
+ analogWrite(3, 0);
+    analogWrite(5, pwm);
+    analogWrite(6, 0.7 * pwm); //
+    analogWrite(9, 0);
+    analogWrite(10, 0);
+    analogWrite(11, 0.7 * pwm+corr);
     }
     else if (getHeading < desired_angle) {
       speedo = (desired_angle - getHeading) * Kp + constant;
@@ -281,15 +288,15 @@ void loop() {
         speedo = threshold;
       }
       corr = speedo ;
-      analogWrite(6,corr); 
-      analogWrite(9, 0);
-    }
-    analogWrite(3, 0);
+ 
+       analogWrite(3, 0);
     analogWrite(5, pwm);
-    analogWrite(6, 0.7 * pwm); //
+    analogWrite(6, 0.7 * pwm+corr); //
     analogWrite(9, 0);
     analogWrite(10, 0);
     analogWrite(11, 0.7 * pwm);
+    }
+   
   }
 
 
