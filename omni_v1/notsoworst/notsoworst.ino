@@ -158,18 +158,22 @@ void loop() {
     pwm = abs(IBus.readChannel(1) - 1500);
     pwm = pwm / 3;
     if (getHeading > desired_angle) {
-      speedo = (getHeading - desired_angle) * Kp + constant;
+      speedo = (getHeading - desired_angle) * Kp;
       if (speedo > threshold) {
         speedo = threshold;
       }
       corr = speedo;
+         analogWrite(5, corr);
+    analogWrite(3, 0);
     }
     else if (getHeading < desired_angle) {
-      speedo = (desired_angle - getHeading) * Kp + constant;
+      speedo = (desired_angle - getHeading) * Kp;
       if (speedo > threshold) {
         speedo = threshold;
       }
       corr = speedo ;
+         analogWrite(3, corr);
+    analogWrite(5, 0);
     }
     analogWrite(6, pwm);
     analogWrite(9, 0);
@@ -190,7 +194,7 @@ void loop() {
     pwm = abs(1500 - IBus.readChannel(1) );
     pwm = pwm / 3;
     if (getHeading > desired_angle) {
-      speedo = (getHeading - desired_angle) * Kp + constant;
+      speedo = (getHeading - desired_angle) * Kp ;
       if (speedo > threshold) {
         speedo = threshold;
       }
@@ -199,7 +203,7 @@ void loop() {
       analogWrite(3, 0);
     }
     else if (getHeading < desired_angle) {
-      speedo = (desired_angle - getHeading) * Kp + constant;
+      speedo = (desired_angle - getHeading) * Kp ;
       if (speedo > threshold) {
         speedo = threshold;
       }
@@ -244,10 +248,10 @@ void loop() {
     }
      analogWrite(3, pwm);
       analogWrite(5, 0);
-      analogWrite(9, 0.5 * pwm);
+      analogWrite(9, 0.7 * pwm);
       analogWrite(6, 0);
       analogWrite(11, 0);
-      analogWrite(10, 0.5 * pwm);
+      analogWrite(10, 0.7 * pwm);
   }
   flagg = 0;
   //left
@@ -282,10 +286,10 @@ void loop() {
     }
     analogWrite(3, 0);
     analogWrite(5, pwm);
-    analogWrite(6, 0.5 * pwm); //
+    analogWrite(6, 0.7 * pwm); //
     analogWrite(9, 0);
     analogWrite(10, 0);
-    analogWrite(11, 0.5 * pwm);
+    analogWrite(11, 0.7 * pwm);
   }
 
 
