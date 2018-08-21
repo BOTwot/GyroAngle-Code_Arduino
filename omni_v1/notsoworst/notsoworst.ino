@@ -27,7 +27,8 @@ uint16_t packetSize;    // expected DMP packet size (default is 42 bytes)
 uint16_t fifoCount;     // count of all bytes currently in FIFO
 uint8_t fifoBuffer[64]; // FIFO storage buffer
 
-float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
+float ypr[3];  // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
+// Very imp Function initg.
 void initg() {
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
   Wire.begin();
@@ -48,7 +49,6 @@ void setup() {
   Serial.print("heading:");
   rande = getHeading;
   Serial.println(rande);
-  delay(2000);
   flagg = 0;
   minimum = rande ;
   maximum = rande ;
@@ -58,7 +58,6 @@ void setup() {
   Serial.print("min");
   Serial.println(minimum);
   digitalWrite(LED_BUILTIN, HIGH);
-  delay(1000);
   pinMode(3, OUTPUT);
   pinMode(5, OUTPUT);
   pinMode(6, OUTPUT);
@@ -104,6 +103,7 @@ void updateangle() {
       desired_angle -= 360;
     else if (getHeading > 300)
       getHeading -= 360;
+
 
   }
 }
@@ -248,9 +248,9 @@ void loop() {
         speedo = threshold;
       }
       corr = speedo ;
-      analogWrite(3, pwm);
+      analogWrite(3, pwm + corr);
       analogWrite(5, 0);
-      analogWrite(9, 0.5 * pwm + corr);
+      analogWrite(9, 0.5 * pwm );
       analogWrite(6, 0);
       analogWrite(11, 0);
       analogWrite(10, 0.5 * pwm);
@@ -278,11 +278,11 @@ void loop() {
       }
       corr = speedo;
       analogWrite(3, 0);
-      analogWrite(5, pwm);
+      analogWrite(5, pwm + corr);
       analogWrite(6, 0.5 * pwm); //
       analogWrite(9, 0);
       analogWrite(10, 0);
-      analogWrite(11, 0.5 * pwm + corr);
+      analogWrite(11, 0.5 * pwm );
     }
     else if (getHeading < desired_angle) {
       speedo = (desired_angle - getHeading) * Kp ;
