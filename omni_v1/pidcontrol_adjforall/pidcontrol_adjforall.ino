@@ -26,6 +26,7 @@ float rande;
 #define RIGHT_PIN2 11
 
 int desired_angle = 0;
+int rotation = 0;
 
 // reset interrupt flag and get INT_STATUS byte
 AutoPID wheel1(&getHeading, &desired_angle, &pwm1, minimum, maximum, Kp, Ki, Kd);
@@ -60,6 +61,7 @@ void cw() {
   analogWrite(NOSE_PIN2, 0);
   updateangle();
   desired_angle = getHeading;
+  rotation = 1;
 }
 //this function is called when you have to turn counter- clockwise, pwm depends upon the magnitude of stick moved
 void ccw() {
@@ -75,6 +77,32 @@ void ccw() {
   analogWrite(NOSE_PIN1, 0);
   updateangle();
   desired_angle = getHeading;
+  rotation = 1;
+}
+void adjust()
+{
+  if (getHeading > desired_angle)
+  {
+    pwm = 40;
+    analogWrite(LEFT_PIN2, pwm);
+    analogWrite(LEFT_PIN1, 0);
+    analogWrite(RIGHT_PIN2, 0);
+    analogWrite(RIGHT_PIN1, pwm);
+    analogWrite(NOSE_PIN2, pwm);
+    analogWrite(NOSE_PIN1, 0);
+    updateangle();
+  }
+  else if (getHeading < desired_angle)
+  {
+    pwm = 40;
+    analogWrite(LEFT_PIN1, pwm);
+    analogWrite(LEFT_PIN2, 0);
+    analogWrite(RIGHT_PIN1, 0);
+    analogWrite(RIGHT_PIN2, pwm);
+    analogWrite(NOSE_PIN1, pwm);
+    analogWrite(NOSE_PIN2, 0);
+    updateangle();
+  }
 }
 //this function is called to update the current angle, be sure to call this function frequently to update the current angle
 void updateangle() {
@@ -100,6 +128,16 @@ void loop() {
       (IBus.readChannel(1) >= 1470 && IBus.readChannel(1) <=  1530)) {
     Serial.println("stopp");
     updateangle();
+     if (rotation == 1)
+      {
+        updateangle();
+        desired_angle = getHeading;
+        rotation = 0;
+      }
+    while (abs(desired_angle - getHeading) > 4)
+    {
+      adjust();
+    }
     desired_angle = getHeading;
     analogWrite(LEFT_PIN2, 0);
     analogWrite(LEFT_PIN1, 0);
@@ -190,6 +228,7 @@ void loop() {
   flagg = 0;
   //right
   while (IBus.readChannel(0) > 1535) {
+    Serial.println("right");
     IBus.loop();
     updateangle();
 
