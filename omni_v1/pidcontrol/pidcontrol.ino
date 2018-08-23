@@ -3,7 +3,6 @@
 
 #include "AutoPID.h"
 #include <I2C_Anything.h>
-#include "I2Cdev.h"
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
 #include "Wire.h"
 #endif
@@ -36,26 +35,17 @@ void setup() {
   Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
   IBus.begin(Serial1);
+  Wire.begin();
   wheel1.setTimeStep(50);
   wheel2.setTimeStep(50);
   Wire.beginTransmission(8);
   flagg = 0;
-  initg();
   pinMode(NOSE_PIN1, OUTPUT);
   pinMode(NOSE_PIN2, OUTPUT);
   pinMode(LEFT_PIN1, OUTPUT);
   pinMode(LEFT_PIN2, OUTPUT);
   pinMode(RIGHT_PIN1, OUTPUT);
   pinMode(RIGHT_PIN2, OUTPUT);
-}
-// Very very Imp
-void initg() {
-#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-  Wire.begin();
-  Wire.setClock(400000); // 400kHz I2C clock. Comment this line if having compilation difficulties
-#elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
-  Fastwire::setup(400, true);
-#endif
 }
 //this function is called when you have to turn clockwise, pwm depends upon the magnitude of stick moved
 void cw() {
@@ -98,6 +88,7 @@ void updateangle() {
     else if (getHeading > 300)
       getHeading -= 360;
   }
+  Serial.println(getHeading);
 }
 void loop() {
   flagg = 0;      //this vavriable serves as flag to get the desired_angle (previous angle) which  is used for corrections
