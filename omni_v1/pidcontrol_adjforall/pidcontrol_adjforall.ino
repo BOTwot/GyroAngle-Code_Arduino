@@ -3,18 +3,20 @@
 
 #include "AutoPID.h"
 #include <I2C_Anything.h>
-#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-#include "Wire.h"
-#endif
 #include "FlySkyIBus.h"
 #include <Wire.h>
+
 float getHeading;
 double kki = 0.06, kkd = 125, kkp = 2;
 double Ki = 0.03, Kd = 125, Kp = 6;
+
 uint8_t minimum = 0, maximum = 175;
+uint8_t minimum1 = 0, maximum1 = 45;
+double i = 0.04, d = 225, p = 3;
+
 #define OUTPUT_READABLE_YAWPITCHROLL
 
-int speedo, pwm1 = 0, pwm2 = 0 , constant = 6, threshold = 220, pwm = 0, corr, flagg = 0; //Keep constant zero and adjust Kp according to the extent you nedd for corrections
+int speedo, pwm1 = 0, pwm2 = 0 , pwm3 = 0, constant = 6, threshold = 220, pwm = 0, corr, flagg = 0; //Keep constant zero and adjust Kp according to the extent you nedd for corrections
 float rande;
 #define INTERRUPT_PIN 2  // use pin 2 on Arduino Uno & most boards
 #define LED_PIN 13 // (Arduino is 13, Teensy is 11, Teensy++ is 6)
@@ -31,7 +33,7 @@ int rotation = 0;
 // reset interrupt flag and get INT_STATUS byte
 AutoPID wheel1(&getHeading, &desired_angle, &pwm1, minimum, maximum, Kp, Ki, Kd);
 AutoPID wheel2(&getHeading, &desired_angle, &pwm2, minimum, maximum, kkp, kki, kkd);
-//AutoPID wheel3(&getHeading, &desired_angle, &pwm1, minimum, maximum, Kp, Ki, Kd);
+AutoPID wheel3(&getHeading, &desired_angle, &pwm3, minimum1, maximum1, p, i, d);
 void setup() {
   Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
@@ -83,23 +85,25 @@ void adjust()
 {
   if (getHeading > desired_angle)
   {
-    pwm = 40;
-    analogWrite(LEFT_PIN2, pwm);
+    //pwm = 40;
+    wheel3.run();
+    analogWrite(LEFT_PIN2, pwm3);
     analogWrite(LEFT_PIN1, 0);
     analogWrite(RIGHT_PIN2, 0);
-    analogWrite(RIGHT_PIN1, pwm);
-    analogWrite(NOSE_PIN2, pwm);
+    analogWrite(RIGHT_PIN1, pwm3);
+    analogWrite(NOSE_PIN2, pwm3);
     analogWrite(NOSE_PIN1, 0);
     updateangle();
   }
   else if (getHeading < desired_angle)
   {
-    pwm = 40;
-    analogWrite(LEFT_PIN1, pwm);
+    //pwm = 40;
+    wheel3.run();
+    analogWrite(LEFT_PIN1, pwm3);
     analogWrite(LEFT_PIN2, 0);
     analogWrite(RIGHT_PIN1, 0);
-    analogWrite(RIGHT_PIN2, pwm);
-    analogWrite(NOSE_PIN1, pwm);
+    analogWrite(RIGHT_PIN2, pwm3);
+    analogWrite(NOSE_PIN1, pwm3);
     analogWrite(NOSE_PIN2, 0);
     updateangle();
   }
@@ -128,12 +132,12 @@ void loop() {
       (IBus.readChannel(1) >= 1470 && IBus.readChannel(1) <=  1530)) {
     Serial.println("stopp");
     updateangle();
-     if (rotation == 1)
-      {
-        updateangle();
-        desired_angle = getHeading;
-        rotation = 0;
-      }
+    if (rotation == 1)
+    {
+      updateangle();
+      desired_angle = getHeading;
+      rotation = 0;
+    }
     while (abs(desired_angle - getHeading) > 4)
     {
       adjust();
