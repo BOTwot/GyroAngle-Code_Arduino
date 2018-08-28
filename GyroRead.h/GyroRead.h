@@ -32,7 +32,7 @@ public:
     float getAngle()
     {
         if (Wire.requestFrom(_addr, 4) == 4)
-            rtvalue= I2C_readAnything (angle);
-        return rtvalue;
+        I2C_readAnything (angle);
+        return angle;
     }
 };
