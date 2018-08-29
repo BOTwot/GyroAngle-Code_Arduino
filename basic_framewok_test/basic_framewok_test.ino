@@ -16,12 +16,12 @@ int stcorr1 = 0, stcorr2 = 0, sdlcorr1 = 0, sdlcorr2 = 0, sdrcorr1 = 0, sdrcorr2
 double stkp = 6, stki = 0.03, stkd = 125, sdkp = 2, sdki = 0.06, sdkd = 125;    //Kp,Ki,Kd for AutoPID Lib
 uint8_t stmax = 100, stmin = 0, sdmax = 100, sdmin = 0;    //Variables for min and max adjust pwm
 float curangle;
-int prevangle = 0, pwmfw, pwmbk, pwmlt, pwmrt, pwm;
+int prevangle = 0, pwmfw, pwmbk, pwmlt, pwmrt, pwm;       //pwm variables for each direction
 //Objects created for included libraries
-GyroRead gyro;
-AutoPID straight(&curangle, &prevangle, &stcorr1, &stcorr2, stmin, stmax, stkp, stki, stkd);
-AutoPID sidewayl(&curangle, &prevangle, &sdlcorr1, &sdlcorr2, sdmin, sdmax, sdkp, sdki, sdkd);
-AutoPID sidewayr(&curangle, &prevangle, &sdrcorr1, &sdrcorr2, sdmin, sdmax, sdkp, sdki, sdkd);
+GyroRead gyro;                //Creating object for GyroRead Lib
+AutoPID straight(&curangle, &prevangle, &stcorr1, &stcorr2, stmin, stmax, stkp, stki, stkd);      //AutoPID Obj
+AutoPID sidewayl(&curangle, &prevangle, &sdlcorr1, &sdlcorr2, sdmin, sdmax, sdkp, sdki, sdkd);    //AutoPID Obj
+AutoPID sidewayr(&curangle, &prevangle, &sdrcorr1, &sdrcorr2, sdmin, sdmax, sdkp, sdki, sdkd);    //AutoPID Obj
 //AutoPID adjust
 void setup() {
   Serial.begin(115200);
@@ -79,11 +79,17 @@ void forward()      //Call the function for forward movement, adjust is included
   {
     analogWrite(NOSE_PIN1, stcorr1 + pwmrt + sdrcorr1 - stcorr2 - pwmlt - sdlcorr2);
     analogWrite(NOSE_PIN2, 0);
+   // Serial.print("else ");
+    Serial.println(stcorr1 + pwmrt + sdrcorr1 - stcorr2 - pwmlt - sdlcorr2);
+
   }
   else if ((stcorr1 + pwmrt + sdrcorr1 - stcorr2 - pwmlt - sdlcorr2) < 0)
   {
     analogWrite(NOSE_PIN1, 0);
     analogWrite(NOSE_PIN2, stcorr2 + pwmlt + sdlcorr2 - stcorr1 - pwmrt - sdrcorr1 );
+    //Serial.print("in else ");
+    //Serial.println(stcorr2 + pwmlt + sdlcorr2 - stcorr1 - pwmrt - sdrcorr1);
+    //Serial.print("out else ");
   }
   if ((pwmfw + 0.5 * pwmlt + sdlcorr1 - 0.5 * pwmrt - pwmbk) > 0)
   {
@@ -105,36 +111,6 @@ void forward()      //Call the function for forward movement, adjust is included
     analogWrite(RIGHT_PIN1, 0);
     analogWrite(RIGHT_PIN2, 0.5 * pwmlt + pwmbk - 0.5 * pwmrt - sdrcorr2 - pwmfw);
   }
-}
-void back()         //Call the function for back movement, adjust is included
-{
-  straight.run();                  // AutoPID lib function to update the correction pwm
-  analogWrite(NOSE_PIN1, stcorr1);
-  analogWrite(NOSE_PIN2, stcorr2);
-  analogWrite(LEFT_PIN2, pwm);
-  analogWrite(LEFT_PIN1, 0);
-  analogWrite(RIGHT_PIN2, pwm);
-  analogWrite(RIGHT_PIN1, 0);
-}
-void left()         //Call the function for left movement, adjust is included
-{
-  sidewayl.run();                   // AutoPID lib function to update the correction pwm
-  analogWrite(NOSE_PIN1, 0);
-  analogWrite(NOSE_PIN2, pwm + sdlcorr2);
-  analogWrite(LEFT_PIN1, 0.5 * pwm + sdlcorr1);
-  analogWrite(LEFT_PIN2, 0);
-  analogWrite(RIGHT_PIN1, 0);
-  analogWrite(RIGHT_PIN2, 0.5 * pwm);
-}
-void right()        //Call the function for right movement, adjust is included
-{
-  sidewayr.run();                  // AutoPID lib function to update the correction pwm
-  analogWrite(NOSE_PIN1, pwm + sdrcorr1);
-  analogWrite(NOSE_PIN2, 0);
-  analogWrite(LEFT_PIN1, 0);
-  analogWrite(LEFT_PIN2, 0.5 * pwm );
-  analogWrite(RIGHT_PIN1, 0.5 * pwm + sdrcorr2);
-  analogWrite(RIGHT_PIN2, 0);
 }
 void cwise()        //Call the function for clock wise movement
 {
@@ -166,6 +142,7 @@ void loop() {
   }
   if (IBus.readChannel(3) > 1535)     //rotation clockwise
   {
+    IBus.loop();
     pwm = abs(IBus.readChannel(3) - 1500 );
     mapping();
     cwise();
@@ -173,44 +150,69 @@ void loop() {
   }
   if (IBus.readChannel(3) < 1465)     //rotation anti-clockwise
   {
+    IBus.loop();
     pwm = abs( 1500 - IBus.readChannel(3) );
     mapping();
     ccwise();
     updateangle();
   }
-  if (IBus.readChannel(1) > 1535)     //forward
+  while (IBus.readChannel(1) > 1535)     //forward
   {
-    straight.run();
+    IBus.loop();
+    if (IBus.readChannel(0) > 1535) //right
+    {
+       pwmrt = abs(IBus.readChannel(0) - 1500);
+       sidewayr.run();
+    }
+     if (IBus.readChannel(0) < 1465)  //left
+     {
+      pwmlt = abs(1500 - IBus.readChannel(0));
+      sidewayl.run();
+     }
+      straight.run();
     pwmfw = abs(IBus.readChannel(1) - 1500 );
     mapping();
-    Serial.println(pwmfw);
+    // Serial.println(pwmfw);
     forward();
     curangle = gyro.getAngle();
   }
-  if (IBus.readChannel(1) < 1465)     //back
+  while (IBus.readChannel(1) < 1465)     //back
   {
+    IBus.loop();
+    if (IBus.readChannel(0) > 1535) //right
+    {
+       pwmrt = abs(IBus.readChannel(0) - 1500);
+       sidewayr.run();
+    }
+     if (IBus.readChannel(0) < 1465)  //left
+     {
+      pwmlt = abs(1500 - IBus.readChannel(0));
+      sidewayl.run();
+     }
     straight.run();
     pwmbk = abs(1500 - IBus.readChannel(1) );
     mapping();
-    Serial.println(pwmbk);
+    //Serial.println(pwmbk);
     forward();
     curangle = gyro.getAngle();
   }
   if (IBus.readChannel(0) > 1535)     //right
   {
+    IBus.loop();
     sidewayr.run();
     pwmrt = abs(IBus.readChannel(0) - 1500);
     mapping();
-    Serial.println(pwmrt);
+    // Serial.println(pwmrt);
     forward();
     curangle = gyro.getAngle();
   }
   if (IBus.readChannel(0) < 1465)     //left
   {
+    IBus.loop();
     sidewayl.run();
     pwmlt = abs(1500 - IBus.readChannel(0));
     mapping();
-    Serial.println(pwmlt);
+    //Serial.println(pwmlt);
     forward();
     curangle = gyro.getAngle();
   }
